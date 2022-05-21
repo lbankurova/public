@@ -23,7 +23,7 @@ category('DataFrame', () => {
       `make, model,    cylinders, volume, price
 Honda, Civic,    4,         1.4,    15000
 Honda, Accord,   6,         1.8,    20000
-BMW,   328i,     4,         1.7,    60000        
+BMW,   328i,     4,         1.7,    60000
 BMW,   535i,     6,         1.5,    35000
 Tesla, Roadster, ,          1.6,    100000
 Tesla, Model S,  ,          1.6,    120000`);
@@ -61,7 +61,7 @@ Tesla, Model S,  ,          1.6,    120000`);
   let df = DG.DataFrame.create(4);
   df.columns.add(DG.Column.fromStrings('countries', ['USA', 'Canada', 'France', 'Mexico']));
   df.columns.add(DG.Column.fromInt32Array('population', Int32Array.from([1, 4, 2, 3])));
-  
+
   test('append method', async () => {
     df1.append(df2);
     //expect(df1.append(df2), df);
@@ -147,7 +147,7 @@ Tesla, Model S,  ,          1.6,    120000`);
   test('column list addNewDateTime', async () => {
     return df.columns.addNewDateTime('newColumn');
   });
-  
+
   test('column list addNewFloat', async () => {
     df.columns.addNewFloat('newColumn');
     expect(typeof(df.get('newColumn', 1)), 'number');
@@ -177,11 +177,17 @@ Tesla, Model S,  ,          1.6,    120000`);
   });
 
   test('column list bySemType', async () => {
-    expect(df.columns.bySemType(null).toString(), 'countries');
+    df1.onSemanticTypeDetected.subscribe((_) => {
+      let res = df1.columns.bySemType('country');
+      expect(res.toString(), 'countries');
+    });
   });
 
   test('column list bySemTypeAll', async () => {
-    expect(df.columns.bySemTypeAll(null).toString(), 'countries,population');
+    df1.onSemanticTypeDetected.subscribe((_) => {
+      let res = df1.columns.bySemTypeAll('country');
+      expect(res.toString(), 'countries');
+    });
   });
 
   test('column list contains', async () => {
@@ -231,7 +237,7 @@ Tesla, Model S,  ,          1.6,    120000`);
   });
 
   test('row list insertAt', async () => {
-    df1.rows.insertAt(2,2);
+    df1.rows.insertAt(2, 2);
     expect(df1.get('countries', 2), '');
   });
 
@@ -239,4 +245,20 @@ Tesla, Model S,  ,          1.6,    120000`);
     return df1.rows.match('countries = USA').highlight();
   });
 
+  test('row list removeAt', async () => {
+    df.rows.removeAt(1, 1);
+    expect(df.get('countries', 1).toString(), 'France');
+  });
+
+  test('row list select', async () => {
+    return df1.rows.select((row) => row.countries === 'USA');
+  });
+
+  test('row list setValues', async () => {
+    let t = DG.DataFrame.create(3);
+    t.columns.add(DG.Column.fromStrings('countries', ['USA', 'Canada', 'Mexico']));
+    t.columns.add(DG.Column.fromStrings('population', ['321', '35', '121']));
+    t.rows.setValues(2, ['France', '435']);
+    expect(t.get('countries', 2).toString(), 'France');
+  });
 });
